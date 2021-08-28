@@ -1,6 +1,7 @@
 package socket
 
 import (
+	"bufio"
 	"fmt"
 	"net"
 	"os"
@@ -56,7 +57,7 @@ func handle(conn net.Conn) {
 
 func TCPServer() {
 	service := ":1200"
-	tcpAddr, err := net.ResolveTCPAddr("tcp", service)
+	var tcpAddr, err = net.ResolveTCPAddr("tcp", service)
 	checkError(err)
 
 	tcpListen, err := net.ListenTCP("tcp", tcpAddr)
@@ -69,4 +70,20 @@ func TCPServer() {
 	}
 }
 
+func TCPClient() {
+	conn, err := net.Dial("tcp", ":1200")
+	checkError(err)
+	inputReader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Println("What to send to the server\n PRESS Q to quit")
+		input, err := inputReader.ReadString('\n')
+		checkError(err)
+		if input == "Q" {
+			break
+		}
+		_, err = conn.Write([]byte(input))
+		checkError(err)
+	}
+}
 
