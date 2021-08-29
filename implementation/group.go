@@ -14,7 +14,7 @@ func (g *group) message(user *user, msg string) {
 
 	for key, u := range g.members {
 		if user.conn.RemoteAddr() != key {
-			u.writeMessage(msg)
+			u.writeMessage(user, msg)
 		}
 	}
 }
