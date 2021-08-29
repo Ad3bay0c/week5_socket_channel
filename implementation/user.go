@@ -12,11 +12,10 @@ type user struct {
 	username		string
 	conn			net.Conn
 	group			*group
-	instructions	chan<- instruction
 }
 
-func (user *user) acceptInput() {
-	user.writeMessage("Type a writeMessage...")
+func (user *user) acceptInput(s *server) {
+	user.writeMessage(user,"Type a writeMessage... \n")
 	for {
 		input, err := bufio.NewReader(user.conn).ReadString('\n')
 		if err != nil {
@@ -27,37 +26,38 @@ func (user *user) acceptInput() {
 			user.conn.Write([]byte("Enter a valid command"))
 			continue
 		}
+
 		input = strings.Trim(input, "\n")
 		args := strings.Split(input, " ")
 		ins := strings.ToLower(strings.TrimSpace(args[0]))
 
 		switch ins {
 		case "*username":
-			user.instructions <- instruction{
+			s.instructions <- instruction{
 				id: USERNAME,
 				args: args,
 				user: user,
 			}
 		case "*grouplist":
-			user.instructions <- instruction{
+			s.instructions <- instruction{
 				id: GROUPLIST,
 				args: args,
 				user: user,
 			}
 		case "*join":
-			user.instructions <- instruction{
+			s.instructions <- instruction{
 				id: JOIN,
 				args: args,
 				user: user,
 			}
 		case "*quit":
-			user.instructions <- instruction{
+			s.instructions <- instruction{
 				id: QUIT,
 				args: args,
 				user: user,
 			}
 		case "*reply":
-			user.instructions <- instruction{
+			s.instructions <- instruction{
 				id: REPLY,
 				args: args,
 				user: user,
@@ -67,10 +67,10 @@ func (user *user) acceptInput() {
 		}
 	}
 }
-func (user *user) writeMessage(msg string) {
-	user.conn.Write([]byte(fmt.Sprintf("%v: %s",user.username, msg)))
+func (user *user) writeMessage(u *user, msg string) {
+	user.conn.Write([]byte(fmt.Sprintf("$%v: %s\n",u.username, msg)))
 }
 
 func (user *user) errorMessage(err error) {
-	user.conn.Write([]byte(fmt.Sprintf("OOPS!!! An Error Occurred: %v", err)))
+	user.conn.Write([]byte(fmt.Sprintf("OOPS!!! An Error Occurred: %v\n", err)))
 }
