@@ -2,7 +2,6 @@ package implementation
 
 import (
 	"net"
-	"strings"
 )
 
 type group struct {
@@ -10,12 +9,12 @@ type group struct {
 	members	map[net.Addr]*user
 }
 
-func (g *group) message(user *user, msg []string) {
-	message := strings.Join(msg, " ")
+func (g *group) message(user *user, msg string) {
+	//message := strings.Join(msg, " ")
 
 	for key, u := range g.members {
 		if user.conn.RemoteAddr() != key {
-			u.writeMessage(message)
+			u.writeMessage(msg)
 		}
 	}
 }
