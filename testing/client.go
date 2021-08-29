@@ -14,7 +14,7 @@ type client struct {
 	commands	chan<-command
 }
 
-func (c *client) readInput(s *server) {
+func (c *client) readInput() {
 	for {
 		msg, err := bufio.NewReader(c.conn).ReadString('\n')
 		if err != nil {

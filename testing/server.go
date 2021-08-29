@@ -39,7 +39,7 @@ func Execute() {
 			log.Printf("Unable to accept connection")
 			continue
 		}
-
+		//log.Println(conn.RemoteAddr().String())
 		go s.newClient(conn)
 	}
 }
@@ -68,7 +68,7 @@ func (s *server) newClient(conn net.Conn) {
 		commands: s.commands,
 	}
 
-	c.readInput(s)
+	c.readInput()
 }
 
 func (s *server) nick(c *client, args []string) {
