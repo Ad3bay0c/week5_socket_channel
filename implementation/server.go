@@ -55,6 +55,7 @@ func (s *server) readClient() {
 			s.addUsername(ins.user, ins.args)
 		case JOIN:
 		case REPLY:
+			s.replyMessage(ins.user, ins.args)
 		case GROUPLIST:
 		case QUIT:
 		}
@@ -67,6 +68,18 @@ func (s *server) addUsername(user *user, args []string) {
 	}
 	user.username = strings.TrimSpace(args[1])
 	user.writeMessage("Username Updated: " + user.username)
+}
+
+func (s *server) replyMessage(user *user, args []string) {
+	if len(args) < 2 {
+		user.errorMessage(errors.New("type a message; *reply hi"))
+	}
+
+	if user.group == nil {
+		user.errorMessage(errors.New("please, Join a Group first; *join groupname"))
+	}
+
+	user.group.message(args)
 }
 
 
