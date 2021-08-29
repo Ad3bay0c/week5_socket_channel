@@ -11,7 +11,8 @@ import (
 type user struct {
 	username		string
 	conn			net.Conn
-	instructions		chan<- instruction
+	group			*group
+	instructions	chan<- instruction
 }
 
 func (user *user) acceptInput() {
