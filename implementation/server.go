@@ -9,17 +9,15 @@ import (
 )
 
 type server struct {
-	groups			map[string]*group
-	instructions	chan instruction
+	chats        map[string]*chat
+	instructions chan instruction
 }
-func newServer() *server {
-	return &server{
-		groups: make(map[string]*group),
+
+func StartServer() {
+	s := &server{
+		chats:        make(map[string]*chat),
 		instructions: make(chan instruction),
 	}
-}
-func StartServer() {
-	s := newServer()
 
 	go s.readClient()
 
@@ -63,9 +61,9 @@ func (s *server) readClient() {
 			s.addUsername(ins.user, ins.args)
 		case JOIN:
 			s.joinGroup(ins.user, ins.args)
-		case REPLY:
+		case SEND:
 			s.replyMessage(ins.user, ins.args)
-		case GROUPLIST:
+		case CHATS:
 			s.groupList(ins.user)
 		case QUIT:
 			s.quitConnection(ins.user)
@@ -88,22 +86,22 @@ func (s *server) replyMessage(user *user, args []string) {
 		return
 	}
 
-	if user.group == nil {
+	if user.chat == nil {
 		user.errorMessage(errors.New("please, Join a Group first; *join groupName"))
 		return
 	}
 
 	msg := strings.Join(args[1:], " ")
-	user.group.message(user, msg)
+	user.chat.message(user, msg)
 }
 
 func (s *server) groupList(user *user) {
-	if len(s.groups) == 0 {
+	if len(s.chats) == 0 {
 		user.conn.Write([]byte(fmt.Sprintln("$ Empty Group")))
 		return
 	}
 	group := ""
-	for _, v := range s.groups {
+	for _, v := range s.chats {
 		group += v.name + ", "
 	}
 
@@ -111,17 +109,17 @@ func (s *server) groupList(user *user) {
 }
 
 func (s *server) quitGroup(user *user)  {
-	if user.group == nil {
-		user.errorMessage(errors.New("please join a group"))
+	if user.chat == nil {
+		user.errorMessage(errors.New("please join a chat"))
 		return
 	}
-	user.group.message(user, fmt.Sprintf("%v left the group", user.username))
-	delete(user.group.members, user.conn.RemoteAddr())
+	user.chat.message(user, fmt.Sprintf("%v left the chat", user.username))
+	delete(user.chat.members, user.conn.RemoteAddr())
 
 }
 
 func (s *server) quitConnection(user *user) {
-	if user.group != nil {
+	if user.chat != nil {
 		s.quitGroup(user)
 	}
 	user.conn.Close()
@@ -130,25 +128,25 @@ func (s *server) quitConnection(user *user) {
 
 func (s *server) joinGroup(u *user, args []string) {
 	if len(args) < 2 {
-		u.errorMessage(errors.New("enter the group to join"))
+		u.errorMessage(errors.New("enter the chat to join"))
 		return
 	}
 	name := strings.TrimSpace(args[1])
 
-	g, ok := s.groups[name]
+	g, ok := s.chats[name]
 	if !ok {
-		g = &group{
+		g = &chat{
 			name: name,
 			members: make(map[net.Addr]*user),
 		}
 
-		s.groups[name] = g
+		s.chats[name] = g
 	}
 
 	g.members[u.conn.RemoteAddr()] = u
 
-	u.group = g
-	u.group.message(u,fmt.Sprintf("%v joined the group", u.username))
+	u.chat = g
+	u.chat.message(u,fmt.Sprintf("%v joined the chat", u.username))
 
 	u.writeMessage(u, "Welcome to "+ name)
 }
