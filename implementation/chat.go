@@ -4,12 +4,12 @@ import (
 	"net"
 )
 
-type group struct {
+type chat struct {
 	name 	string
 	members	map[net.Addr]*user
 }
 
-func (g *group) message(user *user, msg string) {
+func (g *chat) message(user *user, msg string) {
 	//message := strings.Join(msg, " ")
 
 	for key, u := range g.members {
