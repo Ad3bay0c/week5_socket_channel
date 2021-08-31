@@ -8,8 +8,8 @@ type instruction struct {
 
 const (
 	USERNAME = iota
-	GROUPLIST
+	CHATS
 	QUIT
-	REPLY
+	SEND
 	JOIN
 )
